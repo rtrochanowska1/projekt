@@ -11,28 +11,29 @@ COFFEE_TYPES = (
 
 
 # Lista wyboru kraju pochodzenia kawy
-COUNTRY = {
+COUNTRY = (
     ('BR', 'BRAZYLIA'),
     ('VN', 'WIETNAM'),
     ('CO', 'KOLUMBIA'),
     ('ET', 'ETIOPIA'),
     ('ID', 'INDONEZJA'),
     ('UG', 'UGANDA')
-}
+)
 
-class Coffee_Taste(models.Model):
+
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+class CoffeeTaste(models.Model):
     """Model reprezentujący smak kawy."""
     name = models.CharField(max_length=50)
     description = models.TextField(blank=True, help_text="Krótki opis kawy.")
     coffee_strength = models.IntegerField(
-        max_length=1,
-        blank=True,
-        help_text="Moc kawy w skali od 1-5."
+        help_text="Moc kawy w skali od 1-5.",
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     coffee_acidity = models.IntegerField(
-        max_length=1,
-        blank=True,
-        help_text="Kwasowość kawy w skali od 1-3."
+        help_text="Kwasowość kawy w skali od 1-3.",
+        validators=[MinValueValidator(1), MaxValueValidator(3)]
     )
 
     def __str__(self):
@@ -47,11 +48,15 @@ class Producent(models.Model):
     def __str__(self):
         return f"{self.name}, {self.country}"
 
-#uzupelnic
+
 class Coffee(models.Model):
     """Model reprezentujący kawę w sklepie."""
-    
+    name = models.CharField(max_length=100)
+    type = models.CharField(max_length=1, choices=COFFEE_TYPES, default="Z")
+    taste = models.ForeignKey(CoffeeTaste, null=True, blank=True, on_delete=models.SET_NULL)
+    producent = models.ForeignKey(Producent, null=True, blank=True, on_delete=models.SET_NULL)
 
-
+    def __str__(self):
+        return self.name
 
 
