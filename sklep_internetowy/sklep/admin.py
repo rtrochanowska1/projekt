@@ -1,17 +1,16 @@
 from django.contrib import admin
-from .models import (
-    Customer, Coffee, Producent, CoffeeTaste, Order)
+from .models import (CoffeeTaste, Producent, Coffee, Customer, Order)
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ["name", "surname", "email", "loyalty_points", "registration_date"]
+    list_display = ["name", "surname", "email", "loyalty_points", "registration_date"] #kolumny
     readonly_fields = ('registration_date',) #tylko do odczytu
-    list_filter = ["registration_date"]
-    ordering = ('surname',)
+    list_filter = ["registration_date"] #panel do filtrowania
+    ordering = ('surname',) #domyślnie sortuje alfabetycznie po nazwisku
 
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = ["id", "customer", "date_ordered", "is_completed", "transaction_id"]
-    readonly_fields = ('date_ordered',) #tylko do odczytu
+    readonly_fields = ('date_ordered',) 
     list_filter = ["is_completed", "date_ordered"]
     ordering = ('-date_ordered',) 
 
