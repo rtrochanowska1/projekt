@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import CoffeeTaste, Producent, Coffee, Customer, Order
+from rest_framework.validators import UniqueTogetherValidator
 
 class CoffeeTasteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -57,3 +58,8 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = ['id', 'customer', 'date_ordered', 'is_completed', 'transaction_id']
         read_only_fields = ['id', 'date_ordered']
+
+        def validate_transaction_id(self, value):
+            if value and not value.startswith('TXN'):
+                raise serializers.ValidationError("ID transakcji powinno zaczynać się od 'TXN'.")
+            return value
