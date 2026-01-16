@@ -1,0 +1,12 @@
+{% extends "sklep/base.html" %}
+{% block content %}
+<h2>Dodaj klienta</h2>
+{% if error %}<p style="color: red;">{{ error }}</p>{% endif %}
+<form method="post">
+    {% csrf_token %}
+    <label>Imię: <input type="text" name="imie"></label><br>
+    <label>Nazwisko: <input type="text" name="nazwisko"></label><br>
+    <label>Email: <input type="email" name="email"></label><br>
+    <button type="submit">Zapisz</button>
+</form>
+{% endblock %}

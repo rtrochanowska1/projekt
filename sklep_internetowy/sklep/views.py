@@ -1,16 +1,15 @@
+from django.shortcuts import render, redirect
+from django.http import HttpResponse, Http404
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Customer, Producent
+import datetime
+from .models import Customer, Producent, COUNTRY, Coffee, CoffeeTaste
 from .serializers import CustomerSerializer, ProducentSerializer
 
-# --- CUSTOMER (Osoba) - Klasy APIView (Zadanie 5) ---
-
 class CustomerList(APIView):
-    """Lista wszystkich klientów lub dodanie nowego."""
     def get(self, request):
-        # Zadanie 3 pkt 3: Filtrowanie po fragmencie nazwiska
         surname_query = request.query_params.get('surname', None)
         if surname_query:
             customers = Customer.objects.filter(surname__icontains=surname_query)
@@ -28,7 +27,6 @@ class CustomerList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomerDetail(APIView):
-    """Pobranie, modyfikacja lub usunięcie pojedynczego klienta."""
     def get_object(self, pk):
         try:
             return Customer.objects.get(pk=pk)
@@ -59,9 +57,6 @@ class CustomerDetail(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-
-# --- PRODUCENT (Stanowisko) - Widoki funkcyjne (Zadanie 3) ---
-
 @api_view(['GET', 'POST'])
 def producent_list(request):
     if request.method == 'GET':
@@ -90,67 +85,149 @@ def producent_detail(request, pk):
     elif request.method == 'DELETE':
         producent.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
 
-# --- DODATKOWE IMPORTY DLA LAB 8 ---
-from django.shortcuts import render, redirect  # Potrzebne do renderowania szablonów i przekierowań
-from django.http import HttpResponse, Http404  # Potrzebne do podstawowych odpowiedzi i błędów
-import datetime # Do widoku welcome_view
 
-# 1. Prosty widok powitalny (Listing 1)
 def welcome_view(request):
     now = datetime.datetime.now()
     html = f"""
         <html><body>
-        Witaj w sklepie z kawą! </br>
+        Witaj użytkowniku! </br>
         Aktualna data i czas na serwerze: {now}.
         </body></html>"""
     return HttpResponse(html)
 
-# 2. Widok listy klientów (odpowiednik Osoba) zwracający HTML (Listing 10)
+
 def customer_list_html(request):
-    # Pobieramy wszystkie obiekty Customer z bazy poprzez QuerySet
-    customers = Customer.objects.all()
+    surname_query = request.GET.get('nazwisko') 
+    if surname_query:
+        customers = Customer.objects.filter(surname__icontains=surname_query)
+    else:
+        customers = Customer.objects.all()
+    return render(request, "sklep/customer/list.html", {'customers': customers})
 
-    return render(request,
-                  "sklep/customer/list.html", # Ścieżka do Twojego szablonu
-                  {'customers': customers}) # Przekazanie danych do szablonu
-
-# 3. Widok szczegółów klienta z obsługą błędu 404 i usuwania (Listing 16, 20)
 def customer_detail_html(request, id):
     try:
         customer = Customer.objects.get(id=id)
     except Customer.DoesNotExist:
-        raise Http404("Klient o podanym id nie istnieje")
-
-    # Obsługa usuwania metodą POST (Listing 20)
-    if request.method == "POST":
+        raise Http404("Klient nie istnieje")
+    
+    if request.method == "POST": 
         customer.delete()
         return redirect('customer-list-html')
+        
+    return render(request, "sklep/customer/detail.html", {'customer': customer})
 
-    return render(request,
-                  "sklep/customer/detail.html",
-                  {'customer': customer})
-
-# 4. Widok dodawania klienta przez formularz HTML (Listing 17)
 def customer_create_html(request):
-    if request.method == "GET":
-        return render(request, "sklep/customer/create.html")
-    
-    elif request.method == "POST":
-        # Pobieranie danych z formularza
-        name = request.POST.get('name')
-        surname = request.POST.get('surname')
+    if request.method == "POST":
+        name = request.POST.get('imie')
+        surname = request.POST.get('nazwisko')
         email = request.POST.get('email')
-
-        if name and surname and email:
-            # Tworzenie nowego obiektu w bazie
-            Customer.objects.create(
-                name=name,
-                surname=surname,
-                email=email
-            )
+        if name and surname:
+            Customer.objects.create(name=name, surname=surname, email=email)
             return redirect('customer-list-html')
-        else:
-            error = "Wszystkie pola są wymagane."
-            return render(request, "sklep/customer/create.html", {'error': error})
+    return render(request, "sklep/customer/create.html")
+
+def customer_update_html(request, id):
+    try:
+        customer = Customer.objects.get(id=id)
+    except Customer.DoesNotExist:
+        raise Http404("Klient nie istnieje")
+
+    if request.method == "POST":
+        customer.name = request.POST.get('imie')
+        customer.surname = request.POST.get('nazwisko')
+        customer.email = request.POST.get('email')
+        customer.save()
+        return redirect('customer-detail-html', id=customer.id)
+
+    return render(request, "sklep/customer/update.html", {'customer': customer})
+
+
+def producent_list_html(request):
+    producenci = Producent.objects.all()
+    return render(request, "sklep/producent/list.html", {'producenci': producenci})
+
+def producent_detail_html(request, id):
+    try:
+        producent = Producent.objects.get(id=id)
+    except Producent.DoesNotExist:
+        raise Http404("Producent nie istnieje")
+    
+    if request.method == "POST":
+        producent.delete()
+        return redirect('producent-list-html')
+
+    return render(request, "sklep/producent/detail.html", {'producent': producent})
+
+from .models import Producent, COUNTRY
+
+def producent_create_html(request):
+    if request.method == "POST":
+        name_from_form = request.POST.get('name')
+        country_from_form = request.POST.get('country')
+        
+        if name_from_form and country_from_form:
+            Producent.objects.create(
+                name=name_from_form, 
+                country=country_from_form
+            )
+            return redirect('coffee-list-html')
+            
+    return render(request, "sklep/coffee/create.html", {'countries': COUNTRY})
+
+
+def coffee_list_html(request):
+    coffees = Coffee.objects.all()
+    return render(request, "sklep/coffee/list.html", {'coffees': coffees})
+
+def coffee_detail_html(request, id):
+    try:
+        coffee = Coffee.objects.get(id=id)
+    except Coffee.DoesNotExist:
+        raise Http404("Kawa nie istnieje")
+    
+    if request.method == "POST":
+        coffee.delete()
+        return redirect('coffee-list-html')
+        
+    return render(request, "sklep/coffee/detail.html", {'coffee': coffee})
+
+def coffee_create_html(request):
+    tastes = CoffeeTaste.objects.all()
+    producenci = Producent.objects.all()
+
+    if request.method == "POST":
+        name = request.POST.get('name')
+        c_type = request.POST.get('type')
+        price = request.POST.get('price')
+        taste_id = request.POST.get('taste')
+        producent_id = request.POST.get('producent')
+
+        if name and price:
+            new_coffee = Coffee(
+                name=name,
+                type=c_type,
+                price=price
+            )
+            if taste_id:
+                new_coffee.taste = CoffeeTaste.objects.get(id=taste_id)
+            if producent_id:
+                new_coffee.producent = Producent.objects.get(id=producent_id)
+            
+            new_coffee.save()
+            return redirect('coffee-list-html')
+
+    return render(request, "sklep/coffee/create.html", {
+        'tastes': tastes,
+        'producenci': producenci,
+        'types': Coffee.COFFEE_TYPES 
+    })
+
+def coffee_shop_view(request):
+    """Widok dla klientów - tylko przeglądanie i koszyk"""
+    coffees = Coffee.objects.all()
+    return render(request, "sklep/coffee/shop.html", {'coffees': coffees})
+
+def sklep_home(request):
+    kawy = Coffee.objects.all()
+    return render(request, "sklep/coffee/shop.html", {'coffees': kawy})
