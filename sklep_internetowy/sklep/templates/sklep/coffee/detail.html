@@ -9,9 +9,9 @@
     <p><strong>Producent:</strong> {{ coffee.producent.name }} ({{ coffee.producent.country }})</p>
     
     <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
-        <h4>Profil smakowy:</h4>
-        <p><strong>Nazwa smaku:</strong> {{ coffee.taste.name }}</p>
-        <p><strong>Moc kawy:</strong> {{ coffee.taste.coffee_strength }}/5</p>
+        <p><strong>Smak:</strong> {{ coffee.taste.name }}</p>
+        <p><strong>Moc:</strong> {{ coffee.taste.coffee_strength }}/5</p>
+        <p><strong>Kwasowość:</strong> {{ coffee.taste.coffee_acidity }}/3</p>
     </div>
 
     <a href="{% url 'sklep-home' %}" style="display: inline-block; margin-top: 20px; color: #3498db; text-decoration: none;">&larr; Powrót do oferty</a>
