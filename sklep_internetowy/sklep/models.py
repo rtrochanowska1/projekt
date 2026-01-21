@@ -1,5 +1,6 @@
 from django.db import models
-
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import User
 # Create your models here.
 
 # Lista wyboru rodzaju kawy
@@ -20,8 +21,6 @@ COUNTRY = (
     ('UG', 'UGANDA')
 )
 
-
-from django.core.validators import MinValueValidator, MaxValueValidator
 
 class CoffeeTaste(models.Model):
     """Model reprezentujący smak kawy."""
@@ -76,7 +75,8 @@ class Customer(models.Model):
         default=0,
         help_text="Aktualna liczba punktów lojalnościowych klienta."
     )
-
+    wlasciciel = models.ForeignKey(User, on_delete = models.SET_NULL, null = True, default = 1)
+    
     def __str__(self):
         return f'{self.name} {self.surname}'
     
@@ -92,7 +92,7 @@ class Order(models.Model):
     transaction_id = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
-        customer_surname = self.customer.surname
+        customer_surname = self.customer.surname if self.customer else "Anonim"
         return f'Zamówienie nr {self.id} dla {customer_surname}'
 
     class Meta:
