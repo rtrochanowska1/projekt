@@ -1,0 +1,27 @@
+{% extends "sklep/base.html" %}
+{% block title %}Mocne kawy{% endblock %}
+
+{% block content %}
+<h2 style="text-align:center;">Mocne kawy (4–5)</h2>
+
+{% if not coffees %}
+  <p style="text-align:center;">Brak mocnych kaw.</p>
+{% else %}
+  <ul style="max-width:600px;margin:20px auto;">
+    {% for coffee in coffees %}
+      <li style="margin-bottom:10px;">
+        <strong>{{ coffee.name }}</strong>
+        {% if coffee.taste %}
+          – moc {{ coffee.taste.coffee_strength }}/5
+        {% endif %}
+        <br>
+        <small>
+          Producent:
+          {{ coffee.producent.name|default:"—" }},
+          {{ coffee.producent.get_country_display|default:"—" }}
+        </small>
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+{% endblock %}

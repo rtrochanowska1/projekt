@@ -1,0 +1,90 @@
+{% extends "sklep/base.html" %}
+{% block title %}Panel admina – Zamówienia{% endblock %}
+
+{% block content %}
+<style>
+  .wrap { max-width: 1100px; margin: 20px auto; }
+  .card { background:#fff; border:1px solid #e0e0e0; border-radius: 12px; padding: 16px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); margin-bottom: 14px; }
+  .user { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .muted { color:#777; }
+  .orders { margin-top: 10px; }
+  .order { border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th, td { padding: 8px; border-bottom: 1px solid #eee; text-align:left; }
+  .right { text-align:right; }
+  .pill { display:inline-block; padding: 4px 8px; border-radius: 999px; border:1px solid #ddd; font-size: 12px; }
+</style>
+
+<div class="wrap">
+  <h2>Panel admina – Zamówienia</h2>
+
+  {% if not data %}
+    <div class="card">
+      <p class="muted">Brak zamówień w systemie.</p>
+    </div>
+  {% else %}
+    {% for row in data %}
+      <div class="card">
+        <div class="user">
+          <div>
+            <strong>
+              {{ row.customer.user.get_full_name|default:row.customer.user.username }}
+            </strong>
+            <div class="muted">
+              username: {{ row.customer.user.username }}
+              {% if row.customer.user.email %} | email: {{ row.customer.user.email }}{% endif %}
+            </div>
+          </div>
+          <div class="pill">
+            Zamówień: {{ row.orders|length }}
+          </div>
+        </div>
+
+        <div class="orders">
+          {% for o in row.orders %}
+            <div class="order">
+              <div>
+                <strong>Zamówienie #{{ o.id }}</strong>
+                <span class="muted"> | {{ o.date_ordered }}</span>
+                {% if o.is_paid %}
+                  <span class="pill">opłacone</span>
+                {% else %}
+                  <span class="pill">nieopłacone</span>
+                {% endif %}
+                {% if o.transaction_id %}
+                  <span class="muted"> | transakcja: {{ o.transaction_id }}</span>
+                {% endif %}
+              </div>
+
+              {% if o.items.all %}
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Produkt</th>
+                      <th>Ilość</th>
+                      <th class="right">Cena</th>
+                      <th class="right">Razem</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for it in o.items.all %}
+                      <tr>
+                        <td>{{ it.coffee.name|default:"(usunięty produkt)" }}</td>
+                        <td>{{ it.quantity }}</td>
+                        <td class="right">{{ it.price_at_order }} PLN</td>
+                        <td class="right">{{ it.total_price }} PLN</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              {% else %}
+                <p class="muted">Brak pozycji w zamówieniu.</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}
