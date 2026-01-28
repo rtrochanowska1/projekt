@@ -2,27 +2,28 @@ from django.contrib import admin
 from .models import CoffeeTaste, Producent, Coffee, Customer, Order, OrderItem
 
 
-@admin.register(CoffeeTaste) # rejestracja modelu CoffeeTaste w panelu admina
+ # rejestracja modelu CoffeeTaste w panelu admina
 class CoffeeTasteAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "coffee_strength", "coffee_acidity")
     search_fields = ("name",)
+admin.site.register(CoffeeTaste, CoffeeTasteAdmin)
 
-
-@admin.register(Producent) # rejestracja modelu Producent w panelu admina
+ # rejestracja modelu Producent w panelu admina
 class ProducentAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "country")
     list_filter = ("country",)
     search_fields = ("name",)
+admin.site.register(Producent, ProducentAdmin)
 
-
-@admin.register(Coffee) # rejestracja modelu Coffee w panelu admina
+# rejestracja modelu Coffee w panelu admina
 class CoffeeAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "producent", "coffeetype", "price", "taste")
     list_filter = ("coffeetype", "producent", "taste")
     search_fields = ("name",)
+admin.site.register(Coffee, CoffeeAdmin)
 
 
-@admin.register(Customer) # rejestracja modelu Customer w panelu admina
+# rejestracja modelu Customer w panelu admina
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ("id", "username", "first_name", "last_name", "email", "phone_number", "registration_date")
     ordering = ("user__last_name", "user__first_name")
@@ -44,16 +45,18 @@ class CustomerAdmin(admin.ModelAdmin):
     def email(self, obj):
         return obj.user.email
 
+admin.site.register(Customer, CustomerAdmin)
 
-@admin.register(Order) # rejestracja modelu Order w panelu admina
+# rejestracja modelu Order w panelu admina
 class OrderAdmin(admin.ModelAdmin):
     list_display = ("id", "customer", "date_ordered", "is_paid", "transaction_id")
     list_filter = ("is_paid", "date_ordered")
     search_fields = ("customer__user__username", "customer__user__email")
     date_hierarchy = "date_ordered"
+admin.site.register(Order, OrderAdmin)
 
-
-@admin.register(OrderItem) # rejestracja modelu OrderItem w panelu admina
+# rejestracja modelu OrderItem w panelu admina
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ("id", "order", "coffee", "quantity", "price_at_order", "date_added")
     list_filter = ("order", "coffee")
+admin.site.register(OrderItem, OrderItemAdmin)

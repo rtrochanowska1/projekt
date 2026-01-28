@@ -7,7 +7,7 @@ urlpatterns = [
     path("apanel/kawy/dodaj/", views.coffee_create_admin, name="admin-coffee-create"), # dodawanie kawy przez admina
     path("apanel/zamowienia/", views.admin_orders_overview, name="admin-orders-view"), # przegląd zamówień przez admina
     path("apanel/producenci/dodaj/", views.producent_create_admin, name="admin-producents-create"), # dodawanie producenta przez admina
-path("apanel/smaki/dodaj/", views.taste_create_admin, name="admin-tastes-create"), # dodawanie smaku przez admina
+    path("apanel/smaki/dodaj/", views.taste_create_admin, name="admin-tastes-create"), # dodawanie smaku przez admina
     #API endpoints
     path("api/register/", views.register_user, name="api-register"),
     path("api/token/login/", views.api_token_login, name="api-token-login"),

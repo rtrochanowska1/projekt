@@ -2,9 +2,9 @@ from rest_framework import serializers
 from django.contrib.auth.models import User 
 from .models import CoffeeTaste, Producent, Coffee, Customer, Order, OrderItem
 
-class RegisterSerializer(serializers.ModelSerializer): #serializer do rejestracji użytkowników
+class RegisterSerializer(serializers.ModelSerializer):
     """Serializator do rejestracji użytkowników."""
-    password = serializers.CharField(write_only=True, min_length=6) # wymaga hasła o minimalnej długości 6 znaków)
+    password = serializers.CharField(write_only=True, min_length=6) # wymaga hasła o minimalnej długości 6 znaków
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name']
@@ -13,7 +13,7 @@ class RegisterSerializer(serializers.ModelSerializer): #serializer do rejestracj
     def create(self, validated_data):
         return User.objects.create_user(**validated_data) # tworzy nowego użytkownika z zaszyfrowanym hasłem
 
-class CoffeeTasteSerializer(serializers.ModelSerializer): #serializer dla modelu CoffeeTaste
+class CoffeeTasteSerializer(serializers.ModelSerializer): 
     """Serializator dla modelu CoffeeTaste."""
     class Meta:
         model = CoffeeTaste
@@ -33,7 +33,7 @@ class ProducentSerializer(serializers.ModelSerializer): #serializer dla modelu P
             raise serializers.ValidationError("Nazwa producenta powinna rozpoczynać się wielką literą.")
         return value
 
-class CoffeeSerializer(serializers.ModelSerializer): #serializer dla modelu Coffee
+class CoffeeSerializer(serializers.ModelSerializer):
     """Serializator dla modelu Coffee."""
     coffee_type_display = serializers.CharField(source='get_coffeetype_display', read_only=True)
     class Meta:
@@ -45,16 +45,19 @@ class CoffeeSerializer(serializers.ModelSerializer): #serializer dla modelu Coff
             raise serializers.ValidationError("Cena musi być większa od zera.")
         return value
 
-class CustomerSerializer(serializers.ModelSerializer): #serializer dla modelu Customer
+class CustomerSerializer(serializers.ModelSerializer): 
     """Serializator dla profilu klienta."""
     class Meta:
         model = Customer
         fields = [ 'id', 'user', 'phone_number', 'registration_date']
         read_only_fields = ['id', 'user', 'registration_date']
 
-    def validate_phone_number(self, value): # sprawdza czy numer telefonu ma co najmniej 7 znaków
-        if value and len(value) < 7:
-            raise serializers.ValidationError("Numer telefonu jest za krótki.")
+    def validate_phone_number(self, value): # sprawdza czy numer telefonu ma co najmniej 9 znaków
+        if value:
+            if not value.isdigit():
+                raise serializers.ValidationError("Numer telefonu może zawierać tylko cyfry.")
+            if len(value) != 9:
+                raise serializers.ValidationError("Numer telefonu musi mieć dokładnie 9 cyfr.")
         return value
 
 class OrderItemSerializer(serializers.ModelSerializer): #serializer dla modelu OrderItem
