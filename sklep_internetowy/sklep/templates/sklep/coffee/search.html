@@ -1,0 +1,35 @@
+{% extends "sklep/base.html" %}
+{% block title %}Szukaj kawy{% endblock %}
+
+{% block content %}
+<h2 style="text-align:center;">Szukaj kawy po nazwie</h2>
+
+<form method="get" style="text-align:center;margin-bottom:20px;">
+  <input
+    type="text"
+    name="q"
+    placeholder="np. La"
+    value="{{ prefix }}"
+  >
+  <button type="submit">Szukaj</button>
+</form>
+
+{% if prefix %}
+  <h3 style="text-align:center;">
+    Wyniki dla „{{ prefix }}”
+  </h3>
+
+  {% if not coffees %}
+    <p style="text-align:center;">Brak wyników.</p>
+  {% else %}
+    <ul style="max-width:600px;margin:20px auto;">
+      {% for coffee in coffees %}
+        <li>
+          <strong>{{ coffee.name }}</strong>
+          – {{ coffee.price }} PLN
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endif %}
+{% endblock %}

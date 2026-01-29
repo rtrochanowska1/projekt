@@ -1,28 +1,62 @@
 from django.contrib import admin
-from .models import (CoffeeTaste, Producent, Coffee, Customer, Order)
-
-class CustomerAdmin(admin.ModelAdmin):
-    list_display = ["name", "surname", "email", "loyalty_points", "registration_date"] #kolumny
-    readonly_fields = ('registration_date',) #tylko do odczytu
-    list_filter = ["registration_date"] #panel do filtrowania
-    ordering = ('surname',) #domyślnie sortuje alfabetycznie po nazwisku
+from .models import CoffeeTaste, Producent, Coffee, Customer, Order, OrderItem
 
 
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ["id", "customer", "date_ordered", "is_completed", "transaction_id"]
-    readonly_fields = ('date_ordered',) 
-    list_filter = ["is_completed", "date_ordered"]
-    ordering = ('-date_ordered',) 
+ # rejestracja modelu CoffeeTaste w panelu admina
+class CoffeeTasteAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "coffee_strength", "coffee_acidity")
+    search_fields = ("name",)
+admin.site.register(CoffeeTaste, CoffeeTasteAdmin)
 
+ # rejestracja modelu Producent w panelu admina
+class ProducentAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "country")
+    list_filter = ("country",)
+    search_fields = ("name",)
+admin.site.register(Producent, ProducentAdmin)
 
+# rejestracja modelu Coffee w panelu admina
 class CoffeeAdmin(admin.ModelAdmin):
-    list_display = ["name", "producent", "price", "type"]
-    list_filter = ["producent", "type"]
-    ordering = ('name',)
+    list_display = ("id", "name", "producent", "coffeetype", "price", "taste")
+    list_filter = ("coffeetype", "producent", "taste")
+    search_fields = ("name",)
+admin.site.register(Coffee, CoffeeAdmin)
 
+
+# rejestracja modelu Customer w panelu admina
+class CustomerAdmin(admin.ModelAdmin):
+    list_display = ("id", "username", "first_name", "last_name", "email", "phone_number", "registration_date")
+    ordering = ("user__last_name", "user__first_name")
+    search_fields = ("user__username", "user__first_name", "user__last_name", "user__email")
+
+    @admin.display(ordering="user__username", description="Username") #
+    def username(self, obj):
+        return obj.user.username
+
+    @admin.display(ordering="user__first_name", description="Imię")
+    def first_name(self, obj):
+        return obj.user.first_name
+
+    @admin.display(ordering="user__last_name", description="Nazwisko")
+    def last_name(self, obj):
+        return obj.user.last_name
+
+    @admin.display(ordering="user__email", description="Email")
+    def email(self, obj):
+        return obj.user.email
 
 admin.site.register(Customer, CustomerAdmin)
+
+# rejestracja modelu Order w panelu admina
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ("id", "customer", "date_ordered", "is_paid", "transaction_id")
+    list_filter = ("is_paid", "date_ordered")
+    search_fields = ("customer__user__username", "customer__user__email")
+    date_hierarchy = "date_ordered"
 admin.site.register(Order, OrderAdmin)
-admin.site.register(Coffee, CoffeeAdmin)
-admin.site.register(Producent)
-admin.site.register(CoffeeTaste)
+
+# rejestracja modelu OrderItem w panelu admina
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ("id", "order", "coffee", "quantity", "price_at_order", "date_added")
+    list_filter = ("order", "coffee")
+admin.site.register(OrderItem, OrderItemAdmin)

@@ -1,0 +1,73 @@
+{% extends "sklep/base.html" %}
+{% block title %}Koszyk{% endblock %}
+
+{% block content %}
+<style>
+  .wrap { max-width: 900px; margin: 20px auto; }
+  .card { background:#fff; border:1px solid #e0e0e0; border-radius: 12px; padding: 16px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); }
+  table { width:100%; border-collapse: collapse; }
+  th, td { padding: 10px; border-bottom: 1px solid #eee; text-align:left; }
+  .right { text-align:right; }
+  .btn { background:#4b3832; color:#fff; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; }
+  .btn2 { background:#777; color:#fff; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; }
+  .actions { display:flex; gap:10px; justify-content:flex-end; margin-top: 14px; flex-wrap: wrap; }
+  .muted { color:#777; }
+  .inline { display:inline; }
+</style>
+
+<div class="wrap">
+  <div class="card">
+    <h2>Koszyk</h2>
+
+    {% if not items %}
+      <p class="muted">Koszyk jest pusty.</p>
+      <a href="{% url 'sklep-home' %}">Wróć do sklepu</a>
+    {% else %}
+      <table>
+        <thead>
+          <tr>
+            <th>Kawa</th>
+            <th>Ilość</th>
+            <th class="right">Cena</th>
+            <th class="right">Razem</th>
+            <th class="right">Akcje</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+            <tr>
+              <td>{{ item.coffee.name }}</td>
+              <td>{{ item.qty }}</td>
+              <td class="right">{{ item.coffee.price }} PLN</td>
+              <td class="right">{{ item.line_total }} PLN</td>
+              <td class="right">
+                <form class="inline" action="{% url 'cart-remove' item.coffee.id %}" method="post">
+                  {% csrf_token %}
+                  <button class="btn2" type="submit">Usuń</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <h3 class="right" style="margin-top:14px;">Suma: {{ total }} PLN</h3>
+
+      <div class="actions">
+        <form action="{% url 'cart-clear' %}" method="post">
+          {% csrf_token %}
+          <button class="btn2" type="submit">Wyczyść koszyk</button>
+        </form>
+
+        <a class="btn" href="{% url 'sklep-home' %}">Dodaj więcej kaw</a>
+        {% if user.is_authenticated and not user.is_staff %}
+            <form action="{% url 'order-create' %}" method="post">
+            {% csrf_token %}
+            <button class="btn" type="submit">Zamów</button>
+            </form>
+{% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

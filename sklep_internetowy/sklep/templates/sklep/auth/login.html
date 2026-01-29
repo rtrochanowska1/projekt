@@ -1,0 +1,108 @@
+{% extends "sklep/base.html" %}
+{% block title %}Logowanie{% endblock %}
+
+{% block content %}
+<style>
+  .auth-wrap {
+    max-width: 420px;
+    margin: 40px auto;
+  }
+
+  .auth-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+  }
+
+  .auth-card h2 {
+    margin: 0 0 15px;
+    color: #4b3832;
+    text-align: center;
+  }
+
+  label {
+    display: block;
+    margin-top: 12px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+  }
+
+  .btn {
+    background-color: #4b3832;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 18px;
+  }
+
+  .btn:hover {
+    opacity: 0.9;
+  }
+
+  .error {
+    background: #ffecec;
+    border: 1px solid #ffbcbc;
+    color: #7a0000;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .muted {
+    text-align: center;
+    margin-top: 14px;
+    color: #777;
+  }
+
+  .muted a {
+    color: #3498db;
+    text-decoration: none;
+  }
+
+  .muted a:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h2>Zaloguj się</h2>
+
+    {% if error %}
+      <div class="error">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <label>Nazwa użytkownika</label>
+      <input name="username" required value="{{ request.POST.username }}">
+
+      <label>Hasło</label>
+      <input type="password" name="password" required>
+
+      <button type="submit" class="btn">Zaloguj się</button>
+    </form>
+
+    <p class="muted">
+        Nie masz konta? <a href="{% url 'register-html' %}">Zarejestruj się</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,7 +1,54 @@
 body {
-    background-color: #f6e7d3;
+    background-color: #fff5e8;
     font-family: 'Century Gothic';
-    margin: 40px;
+    margin: 40px; 
+} 
+
+header h1 {
+    text-align: center;
+}
+
+header nav {
+    justify-content: center;
+    background-color: #ffffff; 
+    padding: 15px 25px;
+    display: flex;
+    gap: 15px;       
+    align-items: center;
+    border-radius: 30px;
+    margin-top: 10px;
+}
+
+header nav a {
+    color: #000000;  
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+.messages-container {
+    max-width: 900px;
+    margin: 20px auto;
+}
+
+.message-item {
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background-color: #ffffff;
+    color: #ff0000; 
+    font-size: 0.95rem;
 }
 
 
+.message-item.success {
+    border-left: 5px solid #5bd27b;
+}
+
+.message-item.error {
+    border-left: 5px solid #dc3545;
+    background-color: #fff5f5;
+}

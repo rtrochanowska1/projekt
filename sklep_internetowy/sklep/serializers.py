@@ -1,15 +1,26 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User 
-from .models import CoffeeTaste, Producent, Coffee, Customer, Order
+from .models import CoffeeTaste, Producent, Coffee, Customer, Order, OrderItem
 
-class CoffeeTasteSerializer(serializers.ModelSerializer):
-    """Serializator dla modelu CoffeeTaste"""
+class RegisterSerializer(serializers.ModelSerializer):
+    """Serializator do rejestracji użytkowników."""
+    password = serializers.CharField(write_only=True, min_length=6) # wymaga hasła o minimalnej długości 6 znaków
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name']
+        read_only_fields = ['id']
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data) # tworzy nowego użytkownika z zaszyfrowanym hasłem
+
+class CoffeeTasteSerializer(serializers.ModelSerializer): 
+    """Serializator dla modelu CoffeeTaste."""
     class Meta:
         model = CoffeeTaste
         fields = ['id', 'name', 'description', 'coffee_strength', 'coffee_acidity']
-        read_only_fields = ['id'] # pole id jest generowane automatycznie, użytkownik nie może go edytowac
+        read_only_fields = ['id']
 
-class ProducentSerializer(serializers.ModelSerializer):
+class ProducentSerializer(serializers.ModelSerializer): #serializer dla modelu Producent
     """Serializator dla modelu Producent"""
     country_display = serializers.CharField(source='get_country_display', read_only=True)
     class Meta:
@@ -24,42 +35,52 @@ class ProducentSerializer(serializers.ModelSerializer):
 
 class CoffeeSerializer(serializers.ModelSerializer):
     """Serializator dla modelu Coffee."""
+    coffee_type_display = serializers.CharField(source='get_coffeetype_display', read_only=True)
     class Meta:
         model = Coffee
-        fields = ['id', 'name', 'type', 'taste', 'producent', 'price']
-        read_only_fields = ['id']
+        fields = ['id', 'name', 'coffeetype', 'coffee_type_display', 'taste', 'producent', 'price']
+        read_only_fields = ['id', 'coffee_type_display']
+    def validate_price(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Cena musi być większa od zera.")
+        return value
 
-class UserSerializer(serializers.ModelSerializer):
-    """Serializator do rejestracji nowych użytkowników."""
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'password']
-        extra_kwargs = {'password': {'write_only': True}} 
-
-    def create(self, validated_data):
-        user = User.objects.create_user(**validated_data) # tworzy nowego użytkownika z zaszyfrowanym hasłem
-        return user
-
-class CustomerSerializer(serializers.ModelSerializer):
-    """Serializator dla modelu Customer"""
+class CustomerSerializer(serializers.ModelSerializer): 
+    """Serializator dla profilu klienta."""
     class Meta:
         model = Customer
-        fields = "__all__" # eksportuje wszystkie pola modelu
-        read_only_fields = ['id', 'registration_date']
+        fields = [ 'id', 'user', 'phone_number', 'registration_date']
+        read_only_fields = ['id', 'user', 'registration_date']
 
-    def validate_name(self, value):
-        if not (value[0].isupper() and value.isalpha()): # sprawdza czy imię zawiera tylko litery i zaczyna się wielką literą
-            raise serializers.ValidationError("Imię powinno zawierać tylko litery i rozpoczynać się wielką literą.")
+    def validate_phone_number(self, value): # sprawdza czy numer telefonu ma co najmniej 9 znaków
+        if value:
+            if not value.isdigit():
+                raise serializers.ValidationError("Numer telefonu może zawierać tylko cyfry.")
+            if len(value) != 9:
+                raise serializers.ValidationError("Numer telefonu musi mieć dokładnie 9 cyfr.")
         return value
 
-    def validate_surname(self, value):
-        if not (value[0].isupper() and value.isalpha()): # sprawdza czy nazwisko zawiera tylko litery i zaczyna się wielką literą
-            raise serializers.ValidationError("Nazwisko powinno zawierać tylko litery i rozpoczynać się wielką literą.")
+class OrderItemSerializer(serializers.ModelSerializer): #serializer dla modelu OrderItem
+    """Serializator dla pozycji zamówienia."""
+    coffee_name = serializers.CharField(source='coffee.name', read_only=True)
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'order', 'coffee', 'coffee_name', 'quantity', 'price_at_order', 'date_added']
+        read_only_fields = ['id', 'date_added', 'coffee_name']
+    def validate_quantity(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Ilość musi być większa od zera.")
         return value
-
-class OrderSerializer(serializers.ModelSerializer):
-    """Serializator dla modelu Order"""
+    def validate_price_at_order(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Cena musi być większa od zera.")
+        return value
+    
+class OrderSerializer(serializers.ModelSerializer): #serializer dla modelu Order
+    """Serializator dla modelu Order."""
+    customer_name = serializers.CharField(source='customer.__str__', read_only=True)
+    items = OrderItemSerializer(many=True, read_only=True)
     class Meta:
         model = Order
-        fields = ['id', 'customer', 'date_ordered', 'is_completed', 'transaction_id']
-        read_only_fields = ['id', 'date_ordered'] # uzytkownik nie moze edytowac
+        fields = ['id', 'customer', 'customer_name', 'date_ordered', 'is_paid', 'transaction_id', 'items']
+        read_only_fields = ['id', 'date_ordered', 'customer','customer_name', 'items']
