@@ -323,8 +323,8 @@ def _get_cart(session):
 def cart_detail_html(request):
     cart = _get_cart(request.session)
 
-    ids = [int(k) for k in cart.keys()]
-    coffees = Coffee.objects.filter(id__in=ids)
+    ids = [int(k) for k in cart.keys()] #tworzy listę identyfikatorów kaw, zamieniając je z tekstu na liczby całkowite
+    coffees = Coffee.objects.filter(id__in=ids) #pobiera wszystkie potrzebne produkty jednym zapytaniem
     coffee_map = {c.id: c for c in coffees}
 
     items = []

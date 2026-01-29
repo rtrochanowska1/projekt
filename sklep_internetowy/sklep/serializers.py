@@ -2,16 +2,37 @@ from rest_framework import serializers
 from django.contrib.auth.models import User 
 from .models import CoffeeTaste, Producent, Coffee, Customer, Order, OrderItem
 
-class RegisterSerializer(serializers.ModelSerializer):
+class RegisterSerializer(serializers.ModelSerializer): #klasa oparta na ModelSerializer -> Django automatycznie stworzy większość logiki na podstawie istniejącego modelu User
     """Serializator do rejestracji użytkowników."""
-    password = serializers.CharField(write_only=True, min_length=6) # wymaga hasła o minimalnej długości 6 znaków
+    password = serializers.CharField(write_only=True, min_length=6) #hasło można wysłać do serwera, ale serwer nigdy nie odeśle go z powrotem w odpowiedzi JSON
+
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name']
-        read_only_fields = ['id']
 
-    def create(self, validated_data):
-        return User.objects.create_user(**validated_data) # tworzy nowego użytkownika z zaszyfrowanym hasłem
+    def validate_email(self, value): # walidacja pól
+        email = value.strip().lower() #bez spacji, małe litery
+
+        if not email: # czy pole nie jest puste
+            raise serializers.ValidationError("Email jest wymagany.")
+
+        if User.objects.filter(email=email).exists(): # czy ktos juz ma taki email
+            raise serializers.ValidationError("Użytkownik z takim emailem już istnieje.")
+
+        return email
+
+    def create(self, validated_data): # jak dane zostana zapisane w bazie
+        user = User.objects.create_user( #create_user automatycznie hashuje hasło
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password'],
+            first_name=validated_data.get('first_name', ''), #get -> jesli nie ma imienia, nie wyrzuca bledu
+            last_name=validated_data.get('last_name', '')
+        )
+        return user
+
+
+
 
 class CoffeeTasteSerializer(serializers.ModelSerializer): 
     """Serializator dla modelu CoffeeTaste."""
